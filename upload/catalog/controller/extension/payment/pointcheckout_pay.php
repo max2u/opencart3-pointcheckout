@@ -216,9 +216,6 @@ class ControllerExtensionPaymentPointCheckOutPay extends Controller {
         curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
         
         $response = curl_exec($curl);
-        file_put_contents("/Applications/XAMPP/xamppfiles/htdocs/magento/var/log/opencart.log", date("Y-m-d h:i:sa") .' Response is '.$response."\r\n" ,FILE_APPEND);
-        
-        echo $response;
         curl_close($curl);
         
         if (!$response) {
