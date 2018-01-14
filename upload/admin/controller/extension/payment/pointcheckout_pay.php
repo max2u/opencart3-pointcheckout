@@ -17,7 +17,7 @@ class ControllerExtensionPaymentPointCheckOutPay extends Controller {
 			$this->response->redirect($this->url->link('marketplace/extension', 'user_token=' . $this->session->data['user_token'] . '&type=payment', true));
 		}
 
-		$data['pointcheckout_staging'] = true;
+		$data['pointcheckout_staging'] = false;
 		
 		if (isset($this->error['warning'])) {
 			$data['error_warning'] = $this->error['warning'];
