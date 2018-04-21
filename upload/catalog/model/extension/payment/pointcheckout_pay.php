@@ -14,18 +14,21 @@ class ModelExtensionPaymentPointCheckOutPay extends Model {
 		} else {
 			$status = false;
 		}
-		if($status){
 		$this->load->model('checkout/order');
 		$order_info = $this->model_checkout_order->getOrder($this->session->data['order_id']);
-		//check if payment_country is valid
-		$status = false;
-		foreach ($this->config->get('payment_pointcheckout_pay_country') as $applicableCountry){
-		    if($applicableCountry == $order_info['payment_country_id']){
-		        $status = true;
-		    }
+		
+		if($status && $this->config->get('payment_pointcheckout_pay_applicable_countries')){
+        		//check if payment_country is valid
+        		$status = false;
+        		foreach ($this->config->get('payment_pointcheckout_pay_country') as $applicableCountry){
+        		    if($applicableCountry == $order_info['payment_country_id']){
+        		        $status = true;
+        		    }
+        		}
 		}
+		
 		//check if user_group is valid
-		if($status){
+		if($status && $this->config->get('payment_pointcheckout_pay_applicable_usergroups')){
 		    $this->load->model('account/customer');
 		    $customerInfo = $this->model_account_customer->getCustomer($order_info['customer_id']);
 		    $status=false;
@@ -35,7 +38,7 @@ class ModelExtensionPaymentPointCheckOutPay extends Model {
 		        }
 		    }
 		}
-		}
+		
 
 		$method_data = array();
 
