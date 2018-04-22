@@ -220,27 +220,27 @@ class ControllerExtensionPaymentPointCheckOutPay extends Controller {
             $this->log->write('DoDirectPayment failed: ' . curl_error($curl) . '(' . curl_errno($curl) . ')');
             $this->forwardFailure('Error Connecting to PointCheckout - Payment Failed');
         }
-        
+        $message = '';
         $response_info = json_decode($response);
         //check response and redirect user to either success or failure page
         if (($response_info->success == 'true' && $response_info->result->status =='PAID')) {
             $message.= 'PointCheckout Payment Confirmed'."\n" ;
             $message.= 'payment status: '.$response_info->result->status;
-            $this->forwardSuccess($message);
+            $this->forwardSuccess($message,$this->session->data['order_id']);
         }elseif(!$response_info->success == 'true'){
             $message.='PointCheckout Payment Failed'."\n";
             $message.='message: '.$response_info->error;
-            $this->forwardFailure($message);
+            $this->forwardFailure($message,$this->session->data['order_id']);
         }else{
             $message ='PointCheckout Payment did not complete'."\n";
             $message.= 'payment is : CANCELED'."\n";
-            $this->forwardFailure($message);
+            $this->forwardFailure($message,$this->session->data['order_id']);
         }
         
     }
-    private function forwardFailure($message){
+    private function forwardFailure($message,$currentOrderId){
         $this->load->model('checkout/order');
-        $this->model_checkout_order->addOrderHistory($this->session->data['order_id'], $this->config->get('payment_pointcheckout_pay_order_status_id'), $message, false);
+        $this->model_checkout_order->addOrderHistory($currentOrderId, 10, $message, false);//10 is for order status  failed
         $failureurl = $this->url->link('checkout/failure');
         ob_start();
         header('Location: '.$failureurl);
@@ -248,9 +248,9 @@ class ControllerExtensionPaymentPointCheckOutPay extends Controller {
         die();
     }
     
-    private function forwardSuccess($message){
+    private function forwardSuccess($message,$currentOrderId){
         $this->load->model('checkout/order');
-        $this->model_checkout_order->addOrderHistory($this->session->data['order_id'], $this->config->get('payment_pointcheckout_pay_order_status_id'), $message, false);
+        $this->model_checkout_order->addOrderHistory($currentOrderId, 2, $message, false);// 2 is for order status order proccessing
         $successurl = $this->url->link('checkout/success');
         ob_start();
         header('Location: '.$successurl);
