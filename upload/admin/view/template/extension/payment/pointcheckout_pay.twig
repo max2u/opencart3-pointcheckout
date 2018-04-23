@@ -62,12 +62,24 @@
 						<div class="col-sm-10">
 							<select name="payment_pointcheckout_pay_env" id="input-live-demo"
 								class="form-control">
-								{% if pointcheckout_staging %}
-								<option value="1">{{ text_test }}</option>
-								<option value="0">{{ text_live }}</option>
-								<option value="2" selected="selected">{{ text_staging }}</option>
+                                 {% if pointcheckout_staging %}
+        								{% if payment_pointcheckout_pay_env == 2 %}
+        								<option value="1">{{ text_test }}</option>
+        								<option value="0">{{ text_live }}</option>
+        								<option value="2" selected="selected">{{ text_staging }}</option>
+                                     {% else %}
+        								{% if payment_pointcheckout_pay_env %}
+        								<option value="1" selected="selected">{{ text_test }}</option>
+        								<option value="0">{{ text_live }}</option>
+        								<option value="2" >{{ text_staging }}</option>
+        								{% else %}
+        								<option value="1">{{ text_test }}</option>
+        								<option value="0" selected="selected">{{ text_live }}</option>
+        								<option value="2" >{{ text_staging }}</option>
+        								{% endif %}
+        								{% endif %}
 								{% else %}
-								{% if payment_pointcheckout_pay_test %}
+								{% if payment_pointcheckout_pay_env %}
 								<option value="1" selected="selected">{{ text_test }}</option>
 								<option value="0">{{ text_live }}</option>
 								{% else %}
