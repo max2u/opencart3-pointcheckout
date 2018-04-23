@@ -195,9 +195,9 @@ class ControllerExtensionPaymentPointCheckOutPay extends Controller {
         $order_info = $this->model_checkout_order->getOrder($this->session->data['order_id']);
         
         $_BASE_URL='';
-        if ($this->config->get('payment_pointcheckout_pay_test') == '2'){
+        if ($this->config->get('payment_pointcheckout_pay_env') == '2'){
             $_BASE_URL='https://pay.staging.pointcheckout.com';
-        }elseif(!$this->config->get('payment_pointcheckout_pay_test')){
+        }elseif(!$this->config->get('payment_pointcheckout_pay_env')){
             $_BASE_URL='https://pay.pointcheckout.com';
         }else{
             $_BASE_URL='https://pay.test.pointcheckout.com';
