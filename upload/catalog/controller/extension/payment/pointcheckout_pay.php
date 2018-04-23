@@ -213,13 +213,13 @@ class ControllerExtensionPaymentPointCheckOutPay extends Controller {
         curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
         
         $response = curl_exec($curl);
-        curl_close($curl);
         
         if (!$response) {
-            //TODO log to order history also 
             $this->log->write('DoDirectPayment failed: ' . curl_error($curl) . '(' . curl_errno($curl) . ')');
-            $this->forwardFailure('Error Connecting to PointCheckout - Payment Failed');
+            curl_close($curl);
+            $this->forwardFailure('Error Connecting to PointCheckout - Payment Failed',$this->session->data['order_id']);
         }
+        curl_close($curl);
         $message = '';
         $response_info = json_decode($response);
         //check response and redirect user to either success or failure page
@@ -240,7 +240,7 @@ class ControllerExtensionPaymentPointCheckOutPay extends Controller {
     }
     private function forwardFailure($message,$currentOrderId){
         $this->load->model('checkout/order');
-        $this->model_checkout_order->addOrderHistory($currentOrderId, 10, $message, false);//10 is for order status  failed
+        $this->model_checkout_order->addOrderHistory($currentOrderId, $this->config->get('payment_pointcheckout_pay_payment_failed_status_id'), $message, false);
         $failureurl = $this->url->link('checkout/failure');
         ob_start();
         header('Location: '.$failureurl);
@@ -250,7 +250,7 @@ class ControllerExtensionPaymentPointCheckOutPay extends Controller {
     
     private function forwardSuccess($message,$currentOrderId){
         $this->load->model('checkout/order');
-        $this->model_checkout_order->addOrderHistory($currentOrderId, 2, $message, false);// 2 is for order status order proccessing
+        $this->model_checkout_order->addOrderHistory($currentOrderId, $this->config->get('payment_pointcheckout_pay_payment_success_status_id'), $message, false);
         $successurl = $this->url->link('checkout/success');
         ob_start();
         header('Location: '.$successurl);

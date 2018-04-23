@@ -171,13 +171,32 @@ class ControllerExtensionPaymentPointCheckOutPay extends Controller {
 		} else {
 			$data['payment_pointcheckout_pay_total'] = $this->config->get('payment_pointcheckout_pay_total');
 		}
-
+		
 		if (isset($this->request->post['payment_pointcheckout_pay_order_status_id'])) {
-			$data['payment_pointcheckout_pay_order_status_id'] = $this->request->post['payment_pointcheckout_pay_order_status_id'];
-		} else {
-			$data['payment_pointcheckout_pay_order_status_id'] = $this->config->get('payment_pointcheckout_pay_order_status_id');
+		    $data['payment_pointcheckout_pay_order_status_id'] = $this->request->post['payment_pointcheckout_pay_order_status_id'];
+		} else if(null !== $this->config->get('payment_pointcheckout_pay_order_status_id')) {
+		    $data['payment_pointcheckout_pay_order_status_id'] = $this->config->get('payment_pointcheckout_pay_order_status_id');
+		}else{
+		    $data['payment_pointcheckout_pay_order_status_id']=1;//default value is pendding 1
 		}
-
+		
+		if (isset($this->request->post['payment_pointcheckout_pay_payment_failed_status_id'])) {
+		    $data['payment_pointcheckout_pay_payment_failed_status_id'] = $this->request->post['payment_pointcheckout_pay_payment_failed_status_id'];
+		} else if(null !== $this->config->get('payment_pointcheckout_pay_payment_failed_status_id')) {
+		    $data['payment_pointcheckout_pay_payment_failed_status_id'] = $this->config->get('payment_pointcheckout_pay_payment_failed_status_id');
+		}else{
+		    $data['payment_pointcheckout_pay_payment_failed_status_id']=10;//default value is failed 10
+		}
+		
+		if (isset($this->request->post['payment_pointcheckout_pay_payment_success_status_id'])) {
+		    $data['payment_pointcheckout_pay_payment_success_status_id'] = $this->request->post['payment_pointcheckout_pay_payment_success_status_id'];
+		} else if (null !== $this->config->get('payment_pointcheckout_pay_payment_success_status_id')){
+		    $data['payment_pointcheckout_pay_payment_success_status_id'] = $this->config->get('payment_pointcheckout_pay_payment_success_status_id');
+		}else{
+		    $data['payment_pointcheckout_pay_payment_success_status_id']=2;//default value is proccessing 2
+		}
+		
+		
 		$this->load->model('localisation/order_status');
 
 		$data['order_statuses'] = $this->model_localisation_order_status->getOrderStatuses();
