@@ -161,20 +161,8 @@ class ControllerExtensionPaymentPointCheckOutPay extends Controller {
                     if (isset($response_info->result)) {
                         $resultData = $response_info->result;
                         if (isset($resultData->checkoutId)){
-                            $message .='PointCheckout got payment request and give it an Id: '.$resultData->checkoutId."\n";
+                            $message .='PointCheckout Payment Id: '.$resultData->checkoutId."\n";
                             $this->session->data['checkoutId']=$resultData->checkoutId;
-                        }
-                        if (isset($resultData->merchantName)){
-                            $message .= 'Merchent Name :' . $resultData->merchantName . "\n";
-                        }
-                        if (isset($resultData->referenceId)){
-                            $message .= 'Order Id :' . $resultData->referenceId . "\n";
-                        }
-                        if (isset($resultData->currency)){
-                            $message .= 'Currency :' . $resultData->currency . "\n";
-                        }
-                        if (isset($resultData->grandtotal)){
-                            $message .= 'Grandtotal :' . $resultData->grandtotal . "\n";
                         }
                         $this->model_checkout_order->addOrderHistory($this->session->data['order_id'], $this->config->get('payment_pointcheckout_pay_order_status_id'), $message, false);
                     }
@@ -229,7 +217,7 @@ class ControllerExtensionPaymentPointCheckOutPay extends Controller {
             $this->forwardSuccess($message,$this->session->data['order_id']);
         }elseif(!$response_info->success == 'true'){
             $message.='PointCheckout Payment Failed'."\n";
-            $message.='message: '.$response_info->error;
+            $this->log-write('[ERROR} PointCheckout response with error payment failed   error msg is :'.$response_info->error);
             $this->forwardFailure($message,$this->session->data['order_id']);
         }else{
             $message ='PointCheckout Payment did not complete'."\n";
