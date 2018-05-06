@@ -14,6 +14,30 @@ class ModelExtensionPaymentPointCheckOutPay extends Model {
 		} else {
 			$status = false;
 		}
+		print_r($this->session->data);
+		if($status && $this->config->get('payment_pointcheckout_pay_applicable_countries')){
+		    //check if payment_country is valid
+		    $status = false;
+		    foreach ($this->config->get('payment_pointcheckout_pay_country') as $applicableCountry){
+		        if($applicableCountry == $this->session->data['payment_address']['country_id']){
+		            $status = true;
+		        }
+		    }
+		}
+		
+		//check if user_group is valid
+		if($status && $this->config->get('payment_pointcheckout_pay_applicable_usergroups')){
+		    $this->load->model('account/customer');
+		    $customerInfo = $this->model_account_customer->getCustomer($this->session->data['customer_id']);
+		    $status=false;
+		    foreach ($this->config->get('payment_pointcheckout_pay_user_group') as $applicableUserGroup){
+		        if($applicableUserGroup == $customerInfo['customer_group_id']){
+		            $status = true;
+		        }
+		    }
+		}
+		
+		
 
 		$method_data = array();
 

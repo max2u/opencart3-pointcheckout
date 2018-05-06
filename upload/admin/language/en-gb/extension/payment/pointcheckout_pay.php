@@ -19,14 +19,16 @@ $_['text_title']	         ='PointCheckout';
 
 // Entry
 $_['entry_pointcheckout_key']	 = 'API Key';
-$_['entry_secret']	 = 'API Sscret';
+$_['entry_secret']	 = 'API Secret';
 $_['entry_applicable_countries']	 = 'Payment from Applicable Countries';
 $_['entry_applicable_user_groups']	 = 'Payment from Applicable User Groups ';
 $_['entry_specific_user_groups']	 = 'Payment from Specific User Groups ';
 $_['entry_test']		 = 'Live or Test Mode';
 $_['entry_specific_countries']	 = 'Payment from Specific Countries ';
 $_['entry_total']		 = 'Total';
-$_['entry_order_status'] = 'New Order Status';
+$_['entry_order_status'] = 'Initial Order Status';
+$_['entry_failed_status'] = 'Payment Failed Status';
+$_['entry_success_status'] = 'Payment Success Status';
 $_['entry_geo_zone']	 = 'Geo Zone';
 $_['entry_status']		 = 'Enable PointCheckout Payment';
 $_['entry_sort_order']	 = 'Sort Order';
@@ -39,3 +41,5 @@ $_['help_total']		 = 'The checkout total the order must reach before this paymen
 $_['error_permission']	 = 'Warning: You do not have permission to modify payment in Website Payment Pro Checkout!';
 $_['error_key']	 = 'API Key Required!';
 $_['error_secret']	 = 'API Secret Required!';
+$_['error_user_group'] = 'user group is required as you select to specifiy user groups!';
+$_['error_specific_country'] = 'specific country is required as you select to specify country!';
