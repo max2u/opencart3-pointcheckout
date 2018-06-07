@@ -180,7 +180,7 @@ class ControllerExtensionPaymentPointCheckOutPay extends Controller {
     public function confirm() {
         
         $this->load->model('checkout/order');
-        $order_info = $this->model_checkout_order->getOrder($this->session->data['order_id']);
+        $order_info = $this->model_checkout_order->getOrder($_REQUEST['reference']);
         
         $_BASE_URL='';
         if ($this->config->get('payment_pointcheckout_pay_env') == '2'){
@@ -196,7 +196,7 @@ class ControllerExtensionPaymentPointCheckOutPay extends Controller {
             'Api-Key:'.$this->config->get('payment_pointcheckout_pay_key'),
             'Api-Secret:'.$this->config->get('payment_pointcheckout_pay_secret'),
         );
-        $curl = curl_init($_BASE_URL.'/api/v1.0/checkout/'.$this->session->data['checkoutId']);
+        $curl = curl_init($_BASE_URL.'/api/v1.0/checkout/'.$_REQUEST['checkout']);
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
         curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
         
