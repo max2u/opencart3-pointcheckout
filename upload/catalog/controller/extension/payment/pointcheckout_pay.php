@@ -98,7 +98,7 @@ class ControllerExtensionPaymentPointCheckOutPay extends Controller {
             }
             if($grandTotalDiff>0){
                 //round the difference to 2 decimals 
-                    $grandTotalDiff>=0.009  && $grandTotalDiff<0.01?$grandTotalDiff=0.01:0;
+                $grandTotalDiff = round($grandTotalDiff,2);
                 //accepted to have up to but not 0.05 differnce and would be added to shipping just to avoid having errors in numbers comparing by pointcheckout
                 if($grandTotalDiff<0.05){
                     $storeOrder['shipping']+=$grandTotalDiff;
