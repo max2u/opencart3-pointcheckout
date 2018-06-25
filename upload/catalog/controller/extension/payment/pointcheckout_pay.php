@@ -38,7 +38,7 @@ class ControllerExtensionPaymentPointCheckOutPay extends Controller {
                     'total' =>$this->currency->format($product['price']*$product['quantity'], $this->session->data['currency'], '', false));
                 $items[$i++] = $item;
             }
-            
+            $json = array();
             $storeOrder = array();
             $storeOrder['referenceId'] = $order_info['order_id'];
             $storeOrder['items'] = array_values($items);
@@ -53,16 +53,37 @@ class ControllerExtensionPaymentPointCheckOutPay extends Controller {
                         $calculatedGrandtotal+=$storeOrder['subtotal'];
                         break;
                     case 'shipping':
-                        $storeOrder['shipping'] = $this->currency->format($total['value'], $this->session->data['currency'], '', false);
-                        $calculatedGrandtotal+=$storeOrder['shipping'];
+                        $shipping = $this->currency->format($total['value'], $this->session->data['currency'], '', false);
+                        //in case more than one shipping charges are there 
+                        if(isset($storeOrder['shipping'])){
+                            $storeOrder['shipping'] += $shipping;
+                            $calculatedGrandtotal+=$shipping;
+                        }else{
+                            $storeOrder['shipping'] = $shipping;
+                            $calculatedGrandtotal+=$shipping;
+                        }
                         break;
                     case 'tax':
-                        $storeOrder['tax'] = $this->currency->format($total['value'], $this->session->data['currency'], '', false);
-                        $calculatedGrandtotal+=$storeOrder['tax'];
+                        $tax = $this->currency->format($total['value'], $this->session->data['currency'], '', false);
+                        //in case more than one tax charges are there
+                        if(isset($storeOrder['tax'])){
+                            $storeOrder['tax'] += $tax;
+                            $calculatedGrandtotal+=$tax;
+                        }else{
+                            $storeOrder['tax'] = $tax;
+                            $calculatedGrandtotal+=$tax;
+                        }
                         break;
                     case 'discount':
-                        $storeOrder['discount'] = $this->currency->format($total['value'], $this->session->data['currency'], '', false);
-                        $calculatedGrandtotal-=$storeOrder['discount'];
+                        $discount = $this->currency->format($total['value'], $this->session->data['currency'], '', false);
+                        //in case more than one discount charges are there
+                        if(isset($storeOrder['discount'])){
+                            $storeOrder['discount'] +=  $discount;
+                            $calculatedGrandtotal-= $discount;
+                        }else{
+                            $storeOrder['discount'] =  $discount;
+                            $calculatedGrandtotal-= $discount;
+                        }
                         break;
                     case 'total':
                         $storeOrder['grandtotal'] = $this->currency->format($total['value'], $this->session->data['currency'], '', false);
@@ -75,13 +96,15 @@ class ControllerExtensionPaymentPointCheckOutPay extends Controller {
             }else{
                 $grandTotalDiff =$storeOrder['grandtotal']-$calculatedGrandtotal;
             }
-            //round the difference to 2 decimals 
-            $grandTotalDiff>=0.009?$grandTotalDiff=0.01:0;
-            //accepted to have up to but not 0.05 differnce and would be added to shipping just to avoid having errors in numbers comparing by pointcheckout
-            if($grandTotalDiff<0.05){
-                $storeOrder['shipping']+=$grandTotalDiff;
-            }else{
-                $json['error'] ="Order totals dose not add up";
+            if($grandTotalDiff>0){
+                //round the difference to 2 decimals 
+                    $grandTotalDiff>=0.009  && $grandTotalDiff<0.01?$grandTotalDiff=0.01:0;
+                //accepted to have up to but not 0.05 differnce and would be added to shipping just to avoid having errors in numbers comparing by pointcheckout
+                if($grandTotalDiff<0.05){
+                    $storeOrder['shipping']+=$grandTotalDiff;
+                }else{
+                    $json['error'] ="Order totals dose not add up";
+                }
             }
             $storeOrder['currency'] = $order_info['currency_code'];
             //prepare customer Information
@@ -123,7 +146,7 @@ class ControllerExtensionPaymentPointCheckOutPay extends Controller {
             $response = curl_exec($curl);
             //close connection
             curl_close($curl);
-            $json = array();
+            
             //alert error if response is failure
             if (!$response) {
                 $json['error']='Error Connecting to PointCheckout - Please Try again later';
