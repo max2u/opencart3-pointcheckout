@@ -35,78 +35,75 @@ class ControllerExtensionPaymentPointCheckOutPay extends Controller {
                     'name'=> $product['name'],
                     'sku' => $product['product_id'],
                     'quantity' => $product['quantity'],
-                    'total' =>$product['total']);
+                    'total' =>$this->currency->format($product['price']*$product['quantity'], $this->session->data['currency'], '', false));
                 $items[$i++] = $item;
             }
-            
+            $json = array();
             $storeOrder = array();
             $storeOrder['referenceId'] = $order_info['order_id'];
             $storeOrder['items'] = array_values($items);
-            //collecting totals
-            $order_data = array();
-            
-            $totals = array();
-            $taxes = $this->cart->getTaxes();
-            $total = 0;
-            
-            // Because __call can not keep var references so we put them into an array.
-            $total_data = array(
-                'totals' => &$totals,
-                'taxes'  => &$taxes,
-                'total'  => &$total
-            );
-            
-            $this->load->model('setting/extension');
-            
-            $sort_order = array();
-            
-            $results = $this->model_setting_extension->getExtensions('total');
-            
-            foreach ($results as $key => $value) {
-                $sort_order[$key] = $this->config->get('total_' . $value['code'] . '_sort_order');
-            }
-            
-            array_multisort($sort_order, SORT_ASC, $results);
-            
-            foreach ($results as $result) {
-                if ($this->config->get('total_' . $result['code'] . '_status')) {
-                    $this->load->model('extension/total/' . $result['code']);
-                    
-                    // We have to put the totals in an array so that they pass by reference.
-                    $this->{'model_extension_total_' . $result['code']}->getTotal($total_data);
-                }
-            }
-            
-            $sort_order = array();
-            
-            foreach ($totals as $key => $value) {
-                $sort_order[$key] = $value['sort_order'];
-            }
-            
-            array_multisort($sort_order, SORT_ASC, $totals);
-            $order_data['totals'] = $totals;
+            //calculating totals
+            $calculatedGrandtotal = 0;
             //looping totals and store data in our storeOrder
-            foreach ($order_data['totals'] as $total) {
+            $order_totals=$this->model_checkout_order->getOrderTotals($this->session->data['order_id']);
+            foreach ($order_totals as $total) {
                 switch( $total['code']){
                     case 'sub_total':
-                        $storeOrder['subtotal'] = $total['value'];
+                        $storeOrder['subtotal'] = $this->currency->format($total['value'], $this->session->data['currency'], '', false);
+                        $calculatedGrandtotal+=$storeOrder['subtotal'];
                         break;
                     case 'shipping':
-                        $storeOrder['shipping'] = $total['value'];
+                        $shipping = $this->currency->format($total['value'], $this->session->data['currency'], '', false);
+                        //in case more than one shipping charges are there 
+                        if(isset($storeOrder['shipping'])){
+                            $storeOrder['shipping'] += $shipping;
+                            $calculatedGrandtotal+=$shipping;
+                        }else{
+                            $storeOrder['shipping'] = $shipping;
+                            $calculatedGrandtotal+=$shipping;
+                        }
                         break;
                     case 'tax':
-                        if (isset ($storeOrder['tax'])){
-                            $storeOrder['tax']+=$total['value'];
+                        $tax = $this->currency->format($total['value'], $this->session->data['currency'], '', false);
+                        //in case more than one tax charges are there
+                        if(isset($storeOrder['tax'])){
+                            $storeOrder['tax'] += $tax;
+                            $calculatedGrandtotal+=$tax;
                         }else{
-                            $storeOrder['tax'] = $total['value'];
+                            $storeOrder['tax'] = $tax;
+                            $calculatedGrandtotal+=$tax;
                         }
                         break;
                     case 'discount':
-                        $storeOrder['discount'] = $total['value'];
+                        $discount = $this->currency->format($total['value'], $this->session->data['currency'], '', false);
+                        //in case more than one discount charges are there
+                        if(isset($storeOrder['discount'])){
+                            $storeOrder['discount'] +=  $discount;
+                            $calculatedGrandtotal-= $discount;
+                        }else{
+                            $storeOrder['discount'] =  $discount;
+                            $calculatedGrandtotal-= $discount;
+                        }
                         break;
                     case 'total':
-                        $storeOrder['grandtotal'] = $total['value'];
+                        $storeOrder['grandtotal'] = $this->currency->format($total['value'], $this->session->data['currency'], '', false);
                         break;
+                }
+            }
+            //calculate the diff between calculated grandtotal and given grandtotal from order 
+            if($calculatedGrandtotal > $storeOrder['grandtotal']){
+                $grandTotalDiff = $calculatedGrandtotal-$storeOrder['grandtotal'];
+            }else{
+                $grandTotalDiff =$storeOrder['grandtotal']-$calculatedGrandtotal;
+            }
+            if($grandTotalDiff>0){
+                //round the difference to 2 decimals 
+                $grandTotalDiff = round($grandTotalDiff,2);
+                //accepted to have up to but not 0.05 differnce and would be added to shipping just to avoid having errors in numbers comparing by pointcheckout
+                if($grandTotalDiff<0.05){
+                    $storeOrder['shipping']+=$grandTotalDiff;
+                }else{
+                    $json['error'] ="Order totals dose not add up";
                 }
             }
             $storeOrder['currency'] = $order_info['currency_code'];
@@ -149,7 +146,7 @@ class ControllerExtensionPaymentPointCheckOutPay extends Controller {
             $response = curl_exec($curl);
             //close connection
             curl_close($curl);
-            $json = array();
+            
             //alert error if response is failure
             if (!$response) {
                 $json['error']='Error Connecting to PointCheckout - Please Try again later';
