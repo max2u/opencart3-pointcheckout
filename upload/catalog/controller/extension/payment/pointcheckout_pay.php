@@ -99,9 +99,9 @@ class ControllerExtensionPaymentPointCheckOutPay extends Controller {
             if($grandTotalDiff>0){
                 //round the difference to 2 decimals 
                 $grandTotalDiff = round($grandTotalDiff,2);
-                //accepted to have up to but not 0.05 differnce and would be added to shipping just to avoid having errors in numbers comparing by pointcheckout
+                //accepted to have up to but not 0.05 differnce and would be added to handling just to avoid having errors in numbers comparing by pointcheckout
                 if($grandTotalDiff<0.05){
-                    $storeOrder['shipping']+=$grandTotalDiff;
+                    $storeOrder['handling']=$grandTotalDiff;
                 }else{
                     $json['error'] ="Order totals dose not add up";
                 }
@@ -134,6 +134,12 @@ class ControllerExtensionPaymentPointCheckOutPay extends Controller {
             $customer['shippingAddress'] = $shippingAddress;
             
             $storeOrder['customer'] = $customer;
+            
+            //check php version and if 7.1 or above set ini value -serialize_precision- to -1 to avoid two many decimal places
+            //known problem in json_encode method since php7.1
+            if (version_compare(phpversion(), '7.1', '>=')) {
+                ini_set( 'serialize_precision', -1 );
+            }
             //convert storeOrder array to json format object
             $storeOrder = json_encode($storeOrder);
             //open http connection
