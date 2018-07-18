@@ -137,11 +137,15 @@ class ControllerExtensionPaymentPointCheckOutPay extends Controller {
             
             //check php version and if 7.1 or above set ini value -serialize_precision- to -1 to avoid two many decimal places
             //known problem in json_encode method since php7.1
+            $old_value = ini_get( 'serialize_precision');
             if (version_compare(phpversion(), '7.1', '>=')) {
                 ini_set( 'serialize_precision', -1 );
             }
             //convert storeOrder array to json format object
             $storeOrder = json_encode($storeOrder);
+            if (version_compare(phpversion(), '7.1', '>=')) {
+                ini_set( 'serialize_precision', $old_value  );
+            }
             //open http connection
             $curl = curl_init($_BASE_URL.'/api/v1.0/checkout');
             
