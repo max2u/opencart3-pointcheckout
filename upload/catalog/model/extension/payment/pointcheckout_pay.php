@@ -14,7 +14,6 @@ class ModelExtensionPaymentPointCheckOutPay extends Model {
 		} else {
 			$status = false;
 		}
-		print_r($this->session->data);
 		if($status && $this->config->get('payment_pointcheckout_pay_applicable_countries')){
 		    //check if payment_country is valid
 		    $status = false;
