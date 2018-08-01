@@ -177,6 +177,19 @@ class ControllerExtensionPaymentPointCheckOutPay extends Controller {
                 } else {
                     $json['error'] = $response_info->error ;
                 }
+                //clear session data to prevent giving same order number in checkout
+                unset($this->session->data['shipping_method']);
+                unset($this->session->data['shipping_methods']);
+                unset($this->session->data['payment_method']);
+                unset($this->session->data['payment_methods']);
+                unset($this->session->data['guest']);
+                unset($this->session->data['comment']);
+                unset($this->session->data['order_id']);
+                unset($this->session->data['coupon']);
+                unset($this->session->data['reward']);
+                unset($this->session->data['voucher']);
+                unset($this->session->data['vouchers']);
+                unset($this->session->data['totals']);
             }
         $this->response->addHeader('Content-Type: application/json');
         $this->response->setOutput(json_encode($json));
@@ -212,7 +225,7 @@ class ControllerExtensionPaymentPointCheckOutPay extends Controller {
         if (!$response) {
             $this->log->write('DoDirectPayment failed: ' . curl_error($curl) . '(' . curl_errno($curl) . ')');
             curl_close($curl);
-            $this->forwardFailure('Error Connecting to PointCheckout - Payment Failed',$this->session->data['order_id']);
+            $this->forwardFailure('Error Connecting to PointCheckout - Payment Failed',$_REQUEST['reference']);
         }
         curl_close($curl);
         $message = '';
@@ -221,15 +234,15 @@ class ControllerExtensionPaymentPointCheckOutPay extends Controller {
         if (($response_info->success == 'true' && $response_info->result->status =='PAID')) {
             $message.= 'PointCheckout Payment Confirmed'."\n" ;
             $message.= 'payment status: '.$response_info->result->status;
-            $this->forwardSuccess($message,$this->session->data['order_id']);
+            $this->forwardSuccess($message,$_REQUEST['reference']);
         }elseif(!$response_info->success == 'true'){
             $message.='PointCheckout Payment Failed'."\n";
             $this->log-write('[ERROR} PointCheckout response with error payment failed   error msg is :'.$response_info->error);
-            $this->forwardFailure($message,$this->session->data['order_id']);
+            $this->forwardFailure($message,$_REQUEST['reference']);
         }else{
             $message ='PointCheckout Payment did not complete'."\n";
             $message.= 'payment is : CANCELED'."\n";
-            $this->forwardFailure($message,$this->session->data['order_id']);
+            $this->forwardFailure($message,$_REQUEST['reference']);
         }
         
     }
