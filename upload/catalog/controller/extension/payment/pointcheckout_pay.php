@@ -258,6 +258,7 @@ class ControllerExtensionPaymentPointCheckOutPay extends Controller {
     
     private function forwardSuccess($message,$currentOrderId){
         $this->load->model('checkout/order');
+        $this->session->data['order_id'] = $currentOrderId;
         $this->model_checkout_order->addOrderHistory($currentOrderId, $this->config->get('payment_pointcheckout_pay_payment_success_status_id'), $message, false);
         $successurl = $this->url->link('checkout/success');
         ob_start();
