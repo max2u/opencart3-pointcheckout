@@ -104,6 +104,8 @@ class ControllerExtensionPaymentPointCheckOutPay extends Controller {
             $customer['shippingAddress'] = $shippingAddress;
             
             $storeOrder['customer'] = $customer;
+            $storeOrder['successUrl'] = $order_info['store_url'].'index.php?route=extension/payment/pointcheckout_pay/confirm';
+            $storeOrder['failureUrl'] = $order_info['store_url'].'index.php?route=extension/payment/pointcheckout_pay/confirm';
             
             //check php version and if 7.1 or above set ini value -serialize_precision- to -1 to avoid two many decimal places
             //known problem in json_encode method since php7.1
